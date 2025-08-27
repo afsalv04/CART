@@ -35,6 +35,7 @@
       <ul class="custom-navbar-cta navbar-nav mb-2 mb-md-0 ms-5">
         <li><a class="nav-link" href="{% url 'userprofile' %}"><img src="{% static 'images/user.svg' %}"></a></li>
         <li><a class="nav-link" href="{% url 'cart' %}"><img src="{% static 'images/cart.svg' %}"></a></li>
+       
       </ul>
     </div>
   </div>
@@ -53,20 +54,33 @@
 
   <form method="post" class="w-50">
     {% csrf_token %}
-    <div class="mb-3">
+    <!-- <div class="mb-3">
       <label for="username" class="form-label">Username</label>
       <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}">
+    </div> -->
+
+     <div class="mb-3">
+      <label for="first_name" class="form-label">First Name</label>
+      <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
     </div>
+
 
     <div class="mb-3">
       <label for="email" class="form-label">Email</label>
       <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
     </div>
 
-    
-
     <button type="submit" class="btn btn-primary">Update Profile</button>
   </form>
+
+
+   <!-- Logout button -->
+        <li>
+          <form method="post" action="{% url 'user_logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-light btn-sm ms-3">Logout</button>
+          </form>
+        </li>
 </section>
 <!-- End User Profile Section -->
 

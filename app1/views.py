@@ -185,20 +185,46 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+from django.contrib import messages
+from django.contrib.auth.models import User
+
+# User profile view
 @login_required
-def userprofile(request):
-    user = request.user
+def user_profile(request):
+    user = request.user  # Get currently logged-in user
 
-    if request.method == "POST":
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        # Optional: first_name and last_name if you include them
+        first_name = request.POST.get('first_name', '')
+        # last_name = request.POST.get('last_name', '')
 
-        # Update user info
+        # Update user details
         user.username = username
         user.email = email
+        user.first_name = first_name
+        # user.last_name = last_name
         user.save()
-        messages.success(request, "Profile updated successfully!")
-        return redirect("userprofile")
 
-    return render(request, "userprofile.html", {"user": user})
+        messages.success(request, "Profile updated successfully!")
+        return redirect('userprofile')
+
+    context = {
+        'user': user
+    }
+    return render(request, 'userprofile.html', context)
+
+
+# Logout view
+@login_required
+def user_logout(request):
+    if request.method == 'POST':
+        logout(request)
+        messages.success(request, "You have successfully logged out!")
+        return redirect('user_login')  # Redirect to login page
+    return redirect('userprofile')
+
