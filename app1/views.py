@@ -47,6 +47,9 @@ def about(request):
     return render (request,"about.html")
 
 
+def userprofile(request):
+    return render (request,"userprofile.html")
+
 
 
 
@@ -175,3 +178,27 @@ def update_cart(request, cart_item_id):
         else:
             cart_item.delete()  # if set to 0 → remove item
     return redirect('cart')
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib import messages
+
+@login_required
+def userprofile(request):
+    user = request.user
+
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        
+
+        # Update user info
+        user.username = username
+        user.email = email
+        user.save()
+        messages.success(request, "Profile updated successfully!")
+        return redirect("userprofile")
+
+    return render(request, "userprofile.html", {"user": user})

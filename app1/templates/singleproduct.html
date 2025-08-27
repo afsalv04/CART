@@ -38,7 +38,7 @@
             <li><a class="nav-link" href="{% url 'contactus' %}">Contact us</a></li>
           </ul>
           <ul class="custom-navbar-cta navbar-nav ms-5">
-            <li><a class="nav-link" href="#"><img src="{% static 'images/user.svg' %}" alt="User"></a></li>
+            <li><a class="nav-link" href="{% url 'userprofile' %}"><img src="{% static 'images/user.svg' %}" alt="User"></a></li>
             <li><a class="nav-link" href="{% url 'cart' %}"><img src="{% static 'images/cart.svg' %}" alt="Cart"></a></li>
           </ul>
         </div>
@@ -75,14 +75,25 @@
           <h4 class="text-primary mb-3">${{ product.price|floatformat:2 }}</h4>
 
           <!-- Size (if available) -->
-          {% if product.size %}
-          <div class="mb-3">
-            <label for="size" class="form-label fw-bold">Size</label>
-            <select id="size" class="form-select w-50">
-              <option selected>{{ product.size }}</option>
-            </select>
-          </div>
-          {% endif %}
+         {% if product.size %}
+  <div class="mb-3">
+    <label for="size" class="form-label fw-bold">Size</label>
+    <select id="size" class="form-select w-50">
+      <option value="0" {% if product.size == 0 %}selected{% endif %}>0</option>
+      <option value="1" {% if product.size == 1 %}selected{% endif %}>1</option>
+      <option value="2" {% if product.size == 2 %}selected{% endif %}>2</option>
+      <option value="3" {% if product.size == 3 %}selected{% endif %}>3</option>
+      <option value="4" {% if product.size == 4 %}selected{% endif %}>4</option>
+      <option value="5" {% if product.size == 5 %}selected{% endif %}>5</option>
+      <option value="6" {% if product.size == 6 %}selected{% endif %}>6</option>
+      <option value="7" {% if product.size == 7 %}selected{% endif %}>7</option>
+      <option value="8" {% if product.size == 8 %}selected{% endif %}>8</option>
+      <option value="9" {% if product.size == 9 %}selected{% endif %}>9</option>
+      <option value="10" {% if product.size == 10 %}selected{% endif %}>10</option>
+    </select>
+  </div>
+{% endif %}
+
 
           <!-- Stock -->
           <p class="text-muted"><strong>In Stock:</strong> {{ product.stock }}</p>
