@@ -23,6 +23,11 @@ urlpatterns=[
     path('update_cart/<int:cart_item_id>/', views.update_cart, name='update_cart'),  # Update quantity
     path('userprofile/',views.userprofile,name="userprofile"),
     path('logout/', views.user_logout, name='user_logout'),
+    path("order-summary/<int:order_id>/", views.order_summary, name="order_summary"),
+
+    
+
+    
     
 
 ]

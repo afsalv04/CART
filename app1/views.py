@@ -4,6 +4,8 @@ from .models import UserProfile,Product,CartItem
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 
+
+
 # Create your views here.
 def members(request):
     return HttpResponse("Hello World")
@@ -144,21 +146,49 @@ def singleproduct(request, id):
 
 
 
+# def cart(request):
+#     cart_items = CartItem.objects.all()
+#     cart_total = sum(item.total() for item in cart_items)
+#     return render(request, 'cart.html', {'cart_items': cart_items, 'cart_total': cart_total})
+
+
 def cart(request):
-    cart_items = CartItem.objects.all()
-    cart_total = sum(item.total() for item in cart_items)
+    if not request.user.is_authenticated:
+        return redirect("login")
+
+    cart_items = CartItem.objects.filter(user=request.user)  # ✅ only this user's items
+    cart_total = sum(item.total_price for item in cart_items)
     return render(request, 'cart.html', {'cart_items': cart_items, 'cart_total': cart_total})
 
 from django.shortcuts import get_object_or_404, redirect
 from .models import Product, CartItem
 
+# def add_to_cart(request, product_id):
+#     product = get_object_or_404(Product, pk=product_id)
+#     cart_item, created = CartItem.objects.get_or_create(product=product)
+#     if not created:
+#         cart_item.quantity += 1
+#         cart_item.save()
+#     return redirect('cart')
+from django.shortcuts import get_object_or_404, redirect
+from .models import Product, CartItem
+
 def add_to_cart(request, product_id):
+    if not request.user.is_authenticated:
+        # redirect to login if not logged in
+        return redirect("login")
+
     product = get_object_or_404(Product, pk=product_id)
-    cart_item, created = CartItem.objects.get_or_create(product=product)
+    cart_item, created = CartItem.objects.get_or_create(
+        user=request.user,  # ✅ assign logged-in user
+        product=product
+    )
     if not created:
         cart_item.quantity += 1
         cart_item.save()
-    return redirect('cart')
+
+    return redirect("cart")
+
 
 
 
@@ -228,3 +258,123 @@ def user_logout(request):
         return redirect('user_login')  # Redirect to login page
     return redirect('userprofile')
 
+
+
+
+
+
+
+
+
+
+
+
+# from django.shortcuts import render, redirect
+# from django.contrib import messages
+# from .models import BillingDetails, Order, OrderItem, CartItem, Product
+
+
+# def checkout(request):
+#     if request.method == "POST":
+#         # 1️⃣ Save billing details
+#         billing = BillingDetails.objects.create(
+#             country=request.POST.get("country"),
+#             first_name=request.POST.get("first_name"),
+#             last_name=request.POST.get("last_name"),
+#             address=request.POST.get("address"),
+#             apartment=request.POST.get("apartment"),
+#             state_country=request.POST.get("state_country"),
+#             postal_zip=request.POST.get("postal_zip"),
+#             email=request.POST.get("email"),
+#             phone=request.POST.get("phone"),
+#             order_notes=request.POST.get("order_notes"),
+#         )
+
+#         # 2️⃣ Create order
+#         payment_method = request.POST.get("payment_method")
+#         order = Order.objects.create(
+#             billing=billing,
+#             payment_method=payment_method,
+#         )
+
+#         # 3️⃣ Add cart items to order
+#         cart_items = CartItem.objects.all()   # 👈 adjust if using session/user-based carts
+#         for item in cart_items:
+#             OrderItem.objects.create(
+#                 order=order,
+#                 product=item.product,
+#                 quantity=item.quantity,
+#             )
+
+#         # 4️⃣ Clear cart
+#         cart_items.delete()
+
+#         messages.success(request, "Order placed successfully!")
+#         return redirect("order_success", order_id=order.id)
+
+#     # GET request → show checkout page
+#     cart_items = CartItem.objects.all()
+#     total = sum(item.total() for item in cart_items)
+
+#     return render(request, "checkout.html", {
+#         "cart_items": cart_items,
+#         "total": total,
+#     })
+
+
+
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import CartItem, BillingDetails, Order, OrderItem
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import CartItem, BillingDetails, Order, OrderItem
+
+@login_required
+def checkout(request):
+    user = request.user
+    cart_items = CartItem.objects.filter(user=user)
+
+    if request.method == "POST":
+        # Save billing details
+        billing = BillingDetails.objects.create(
+            user=user,
+            country=request.POST.get("country"),
+            first_name=request.POST.get("first_name"),
+            last_name=request.POST.get("last_name"),
+            address=request.POST.get("address"),
+            state_country=request.POST.get("state_country"),
+            postal_zip=request.POST.get("postal_zip"),
+            email=request.POST.get("email"),
+            phone=request.POST.get("phone"),
+            order_notes=request.POST.get("order_notes"),
+        )
+
+        # Create order
+        order = Order.objects.create(
+            user=user,
+            billing=billing,
+            payment_method=request.POST.get("payment_method")
+        )
+
+        # Move cart items into order
+        for item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+            )
+        cart_items.delete()  # Empty cart after checkout
+
+        return redirect("order_summary", order_id=order.id)
+
+    cart_total = sum(item.total_price for item in cart_items)
+    return render(request, "checkout.html", {"cart_items": cart_items, "cart_total": cart_total})
+
+
+@login_required
+def order_summary(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    return render(request, "order_summary.html", {"order": order})
